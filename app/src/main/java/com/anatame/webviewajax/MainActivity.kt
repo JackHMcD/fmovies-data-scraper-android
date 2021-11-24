@@ -37,6 +37,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.lang.Exception
 import java.net.URL
+import kotlin.collections.HashMap
 
 
 class MainActivity : AppCompatActivity() {
@@ -139,7 +140,11 @@ class MainActivity : AppCompatActivity() {
             if(response.isSuccessful && response.body() != null) {
                 Log.d("retrofitRequest", response.body().toString())
                 val vidSrc = response.body()!!.link
-                webview?.loadUrl(vidSrc)
+                webview?.settings?.userAgentString = "Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36"
+                val map = HashMap<String, String>()
+                map.put("referer", "https://fmoviesto.cc")
+
+                webview?.loadUrl(vidSrc, map)
                 webview?.webViewClient = object : WebViewClient() {
                     override fun shouldInterceptRequest(
                         view: WebView?,
