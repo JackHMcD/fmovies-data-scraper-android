@@ -18,8 +18,14 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+
+
+
 
 class MainActivity2 : AppCompatActivity() {
+
+    var HI_BITRATE = 4500000
 
     private var mPlayer: SimpleExoPlayer? = null
     private lateinit var playerView: PlayerView
@@ -46,7 +52,11 @@ class MainActivity2 : AppCompatActivity() {
     }
 
     private fun initPlayer() {
-        mPlayer = SimpleExoPlayer.Builder(this).build()
+        val trackSelector = DefaultTrackSelector()
+        val defaultTrackParam = trackSelector.buildUponParameters().build()
+        trackSelector.parameters = defaultTrackParam
+
+        mPlayer = SimpleExoPlayer.Builder(this).setTrackSelector(trackSelector).build();
         // Bind the player to the view.
         playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
         playerView.player = mPlayer
@@ -54,6 +64,11 @@ class MainActivity2 : AppCompatActivity() {
         mPlayer!!.seekTo(playbackPosition)
         mPlayer!!.prepare(buildMediaSource(), false, false)
 
+        val parameters = trackSelector.buildUponParameters()
+            .setMaxVideoBitrate(HI_BITRATE)
+            .setForceHighestSupportedBitrate(true)
+            .build()
+        trackSelector.setParameters(parameters)
     }
 
     override fun onStart() {
