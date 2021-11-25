@@ -24,7 +24,10 @@ data class BlockHosts(
 //    "cdn.heycdn41.xyz",
        "     cdn.trell.co",
 //        "www.gstatic.com",
-        "untimburra.com"
+        "untimburra.com",
+  //      "ssl.p.jwpcdn.com",
+        "i.imgur.com",
+        "cc.1clickcdn.ru"
     )
 )
 

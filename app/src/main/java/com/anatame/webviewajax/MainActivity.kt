@@ -1,55 +1,34 @@
 package com.anatame.webviewajax
 
+import android.content.Intent
 import android.graphics.Bitmap
-import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.CountDownTimer
 import android.util.Log
-import android.view.View
 import android.webkit.*
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.*
-import kotlin.concurrent.schedule
-import kotlin.system.measureTimeMillis
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import retrofit2.converter.gson.GsonConverterFactory
 
-import retrofit2.Retrofit
-
-import com.google.gson.GsonBuilder
-
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.google.gson.annotations.SerializedName
-import kotlinx.coroutines.launch
 import okhttp3.*
-import org.json.JSONObject
-import org.xml.sax.Parser
 import retrofit2.HttpException
 import java.io.IOException
-import java.lang.Exception
-import java.net.URL
 import kotlin.collections.HashMap
 
 
 class MainActivity : AppCompatActivity() {
 
+
     lateinit var webview: WebView
+    var begin: Long = 0;
+    var end: Long = 0;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        var begin: Long = 0;
-        var end: Long = 0;
 
         webview = findViewById(R.id.mWebView)
         val textView: TextView = findViewById(R.id.textView)
@@ -59,6 +38,10 @@ class MainActivity : AppCompatActivity() {
 
         webview.webViewClient = WebViewClient()
         webview.settings.javaScriptEnabled = true
+        webview?.settings?.userAgentString = "Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36"
+//        val map = HashMap<String, String>()
+//        map.put("referer", "https://fmoviesto.cc")
+
         webview.loadUrl("https://fmoviesto.cc/watch-movie/venom-let-there-be-carnage-2021-full-66669.4792180")
 
         webview.getSettings().setDomStorageEnabled(true);
@@ -102,8 +85,28 @@ class MainActivity : AppCompatActivity() {
                     return getTextWebResource(textStream)
                 }
 
-//                Log.d("webReq", request!!.url.host!!)
+//                Log.d("webReq", request.url.host.toString())
+
+                if(request.url.lastPathSegment == "playlist.m3u8"){
+                    Log.d("webReq", request.url.path!!)
+                    Log.d("webReq", request.url.host!!)
+                    val src = "https://${request.url.host}${request.url.path}"
+                    Log.d("webReq", src)
+
+                    val intent = Intent(this@MainActivity, MainActivity2::class.java)
+                    // To pass any data to next activity
+                    intent.putExtra("hlsSrc", src)
+                    // start your next activity
+                    startActivity(intent)
+                }
+
+
                 return super.shouldInterceptRequest(view, request)
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                Log.d("webReq", "finished")
+                super.onPageFinished(view, url)
             }
 
 
@@ -111,7 +114,20 @@ class MainActivity : AppCompatActivity() {
                 if(url!!.contains("fmoviesto.cc/ajax/get_link")){
                     Log.d("webReq", url)
                     textView.setText(url)
-                    getVidSrc(url!!, view)
+
+                    view?.loadUrl("javascript:(function(){"+
+                            "let timer = setInterval(function(){"+
+                            "l=document.querySelector('iframe-embed');"+
+                            "e=document.createEvent('HTMLEvents');"+
+                            "e.initEvent('click',true,true);"+
+                            "l.dispatchEvent(e);"+
+                            "}, 100)" +
+                            "})()")
+
+//                    getVidSrc(url!!, view)
+
+
+
                     end = System.currentTimeMillis()
                     Log.d("webReq", end.toString())
                     Log.d("webReq", "total time taken ${end.minus(begin)}")
@@ -121,6 +137,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 super.onLoadResource(view, url)
             }
+
+
         }
 
     }
@@ -145,13 +163,21 @@ class MainActivity : AppCompatActivity() {
                 map.put("referer", "https://fmoviesto.cc")
 
                 webview?.loadUrl(vidSrc, map)
+
                 webview?.webViewClient = object : WebViewClient() {
                     override fun shouldInterceptRequest(
                         view: WebView?,
                         request: WebResourceRequest?
                     ): WebResourceResponse? {
 
-                        if(request!!.url.host!!.contains("streamrapid.ru")){
+                        if(request!!.url.lastPathSegment == "playlist.m3u8"){
+                            Log.d("webReq", request.url.path!!)
+                            Log.d("webReq", request.url.host!!)
+                            val src = "https://${request.url.host}${request.url.path}"
+                            Log.d("webReq", src)
+
+                            end = System.currentTimeMillis()
+                            Log.d("webReq", "total time taken ${end.minus(begin)}")
 
                         }
 
@@ -167,6 +193,20 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
+
+// jw-icon jw-icon-display jw-button-color jw-reset
+// Play
+// aria-label
+
+//"""let timer = setInterval(function(){
+//    if(document.querySelector('.jw-icon-display') != null){
+//        document.querySelector('.jw-icon-display').click();
+//        clearInterval(timer);
+//    }
+//}, 100)""
+
+
+
 
 
 
